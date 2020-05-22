@@ -6,6 +6,9 @@ using logging.api.test.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Serilog.Context;
+using Serilog.Core.Enrichers;
+using static logging.api.test.Model.Person;
 
 namespace logging.api.test.Controllers
 {
@@ -23,18 +26,7 @@ namespace logging.api.test.Controllers
         // GET api/values
         [HttpGet]
         public async Task<ActionResult> Get()
-        {
-            var person = new Person
-            {
-                age = 29,
-                email = "eric.tarelli@gmail.com",
-                name = "Eric",
-                surname = "Tarelli"
-            };
-
-            //_logger.LogInformation($"SERIALIZANDO: {JsonConvert.SerializeObject(person)}");
-            _logger.LogInformation("SERIALIZANDO: {@person}", person);
-
+        {            
             return Ok(new string[] { "value1", "value2" });
         }
 
@@ -47,13 +39,14 @@ namespace logging.api.test.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult> Post([FromBody] Person person)
         {
+            return Ok(person);
         }
 
         // PUT api/values/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public void Put(int id, [FromBody] Person value)
         {
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using logging.api.test.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IO;
 using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Logging;
@@ -31,6 +33,10 @@ namespace logging.api.test
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+            services.AddSingleton<RecyclableMemoryStreamManager>();
+
+            services.AddSingleton<ICustomLogger,CustomLogger>();
+
             services.AddLogging(loggingBuilder =>
             {
                 var elasticSearchNodeUri = Configuration.GetValue<string>("LoggingOptions:NodeUri");
@@ -43,13 +49,11 @@ namespace logging.api.test
                 .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSearchNodeUri))
                 {
                     AutoRegisterTemplate = true,
-                    IndexFormat =$"Eric-Logs-{DateTime.Now:yyyy-MM-dd}"
-                    
+                    IndexFormat = $"Eric-Logs-{DateTime.Now:yyyy-MM-dd}"
+
                 })
-                .WriteTo.Console(
-                    outputTemplate:"[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] - {Message} {Properties} {NewLine}"
-                    )
-                .Enrich.With<CustomEnricher>();
+                .WriteTo.Console();
+                //.Enrich.With<CustomEnricher>();
                 // 2- Crear logger
                 var logger = loggerConfiguration.CreateLogger();
                 // 3- Inyectar el servicio
@@ -72,6 +76,10 @@ namespace logging.api.test
             }
 
             app.UseHttpsRedirection();
+            //app.UseMiddleware<LoggerMiddleware>();
+            app.UseMiddleware<MiddlewareOne>();
+            app.UseMiddleware<MiddlewareSecond>();
+            app.UseMiddleware<MiddlewareThird>();
             app.UseMvc();
         }
     }

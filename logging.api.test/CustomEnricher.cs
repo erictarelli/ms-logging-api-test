@@ -12,7 +12,7 @@ namespace logging.api.test
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
             var property = propertyFactory.CreateProperty("log_type","MENSAJE");
-            logEvent.AddPropertyIfAbsent(property);
+            logEvent.AddOrUpdateProperty(property);
         }
     }
 }
